@@ -1,0 +1,534 @@
+---
+title: "Google Data Analytics Capstone"
+author: "Silas Njoroge"
+date: "2025-03-24"
+output:
+  html_document: default
+---
+
+The Data.
+The project is an analysis on the Students Performance data in R studio. Data obtained from Kaggle.
+The dataset includes the following variables:
+1.	Hours Studied – Number of hours a student studied.
+2.	Previous Scores – Previous academic performance (e.g., test scores).
+3.	Extracurricular Activities – Whether the student participates in extracurricular activities (Yes/No).
+4.	Sleep Hours – Number of hours of sleep per night.
+5.	Sample Question Papers Practiced – Number of sample question papers the student practiced.
+6.	Performance Index – The outcome or dependent variable measuring student performance.
+
+
+The Business Questions
+
+1.	Performance Analysis:
+  o	What is the correlation between the number of hours studied and the performance index?
+  o	How much do previous scores predict current performance?
+  o	Do students who practice more sample question papers tend to perform better?
+2.	Behavior and Lifestyle:
+  o	How does sleep quality (hours of sleep) affect student performance?
+  o	Do students who engage in extracurricular activities perform better or worse than those who don't?
+  o	Is there an optimal balance between sleep, study time, and extracurricular participation?
+3.	Interventions and Recommendations:
+  o	What combination of study hours, sleep, and extracurricular activities maximizes student performance?
+  o	Are students with poor previous scores improving with more study time or other interventions?
+4.	Segmentation and Grouping:
+  o	Can students be grouped based on similar study habits and performance outcomes?
+  o	Are there patterns among high-performing versus low-performing students?
+5.	Predictive Modeling:
+  o	Can student performance be predicted accurately based on these factors?
+  o	What is the most influential factor in predicting student success?
+
+
+Process
+  Data cleaning and wrangling
+  Exploratory data analysis (EDA)
+  Machine learning (regression, classification)
+  Data visualization (trends, correlations)
+  Business insights and recommendations
+
+
+```{r}
+#Data cleaning and wrangling
+getwd()
+my_df <- read.csv("Student_Performance.csv")
+
+##Exploratory Data Analysis (EDA)
+head(my_df)
+
+```
+```{r}
+hist(my_df$Hours.Studied, main = "Histogram of Hours.Studied")
+
+```
+#Analysis of Histogram of Hours Studied
+The data is unifromly distributed, no skewness.
+Apart from 1-2 hours, all the other bars of the histogram do not touch. 
+This is because each bar represents a distinct, separate value.
+For that reason, further inspect of each bar will be necessary to view the distribution within each hour using Box Plots
+```{r}
+# Load the necessary library
+library(ggplot2)
+
+# Create the box plot
+ggplot(my_df, aes(x = factor(Hours.Studied), y = Performance.Index)) +
+  geom_boxplot() +
+  labs(x = "Hours Studied", y = "Performance Index", title = "Performance Index by Hours Studied") +
+  theme_minimal()
+
+```
+#Trend Analysis of Box Plots:
+1. Positive Correlation: There appears to be a general positive correlation between the number of hours studied and the performance index. Higher hours studied tend to result in higher median performance scores.
+2. Slight Increase in Variation: The variation (spread) in performance increases slightly as hours studied increase. This suggests that while studying more generally improves performance, some students who study more still perform poorly — indicating other influencing factors like study quality or test-taking skills.
+3. Outliers: There are a few noticeable outliers, especially at higher hours studied, where some students perform significantly better or worse than the typical range.
+4. Plateau Effect: After a certain point (around 7–8 hours), the median performance index seems to stabilize, indicating diminishing returns for additional hours studied.
+
+
+```{r}
+hist(my_df$Sleep.Hours, main = "Histogram of Sleep.Hours")
+
+```
+```{r}
+# Create the box plot
+ggplot(my_df, aes(x = factor(Sleep.Hours), y = Performance.Index)) +
+  geom_boxplot() +
+  labs(x = "Sleep Hours", y = "Performance Index", title = "Performance Index by Sleep Hours")
+```
+#Trend Analysis of Sleep Hours
+1.Moderate Positive Correlation: There seems to be a moderate relationship between sleep hours and performance. Students who sleep around 7–9 hours tend to have higher and more consistent performance scores.
+2.Decreased Performance with Less Sleep: Performance is more inconsistent and generally lower for students who sleep fewer than 6 hours. This suggests that insufficient sleep may negatively impact performance.
+3. Diminishing Returns: Beyond 9 hours, the performance index seems to stabilize or even slightly decrease, indicating that excessive sleep may not lead to improved performance.
+4.Higher Variability with Lower Sleep: Students with very low sleep hours (around 4–5 hours) show greater variability in performance, suggesting that some students may still perform well despite lack of sleep — possibly due to other compensating factors (like prior knowledge or better study habits).
+
+```{r}
+hist(my_df$Sample.Question.Papers.Practiced, main = "Histogram of Sample.Question.Papers.Practiced")
+
+```
+```{r}
+# Create the box plot
+ggplot(my_df, aes(x = factor(Sample.Question.Papers.Practiced), y = Performance.Index)) +
+  geom_boxplot() +
+  labs(x = "Sample.Question.Papers.Practiced", y = "Performance Index", title = "Performance Index by Sample Question Papers Practiced")
+```
+#Trend Analysis: 
+Performance vs. Sample Questions Practiced
+Upward Trend: There's a visible upward trend in the median performance index as the number of sample question papers practiced increases. This indicates that practicing more questions tends to result in better performance.
+
+Reduced Variability: Students who practiced more sample questions (e.g., 4 or 5) not only performed better on average but also showed less variability, suggesting more consistent high performance.
+
+Low Practice, Lower Scores: Students who practiced fewer or no sample questions often had lower performance indices, and the spread of scores was wider—indicating greater inconsistency and risk of underperformance.
+
+Few Outliers: There are some lower-performing outliers among students who practiced more, which could reflect individual differences like test anxiety or gaps in understanding.
+
+
+
+
+
+
+
+
+```{r}
+
+plot(my_df$Hours.Studied, my_df$Performance.Index,
+     xlab = "Hours Studied", ylab = "Performance Index",
+     main = "Scatter Plot: Hours Studied vs. Performance Index")
+
+# You can add regression line
+abline(lm(my_df$Performance.Index ~ my_df$Hours.Studied), col = "red")
+
+```
+1.	Performance Analysis:
+
+#What is the correlation between the number of hours studied and the performance index?
+```{r}
+library(ggplot2)
+
+ggplot(my_df, aes(x = Hours.Studied, y = Performance.Index)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "red") +
+  labs(title = "Previous Scores vs. Performance Index",
+       x = "Previous Scores",
+       y = "Performance Index")
+
+
+```
+```{r}
+# Calculate the correlation coefficient (r)
+r <- cor(my_df$Hours.Studied, my_df$Performance.Index)
+cat("Correlation coefficient (r):", r, "\n")
+
+# Calculate R-squared (r^2)
+r_squared <- r^2
+cat("Coefficient of determination (R²):", r_squared, "\n")
+
+```
+
+Correlation coefficient (r): 0.374 (rounded to 3 decimal places)  
+Coefficient of determination (R²): 0.140
+
+# Interpretation:
+r = 0.374: There is a moderate positive relationship between hours studied and performance index.
+R² = 0.140: About 14%  of the variation in the performance index can be explained by the number of hours studied.
+
+#How much do previous scores predict current performance?
+
+```{r}
+# Calculate the correlation coefficient (r)
+r <- cor(my_df$Previous.Scores, my_df$Performance.Index)
+cat("Correlation coefficient (r):", r, "\n")
+
+# Calculate R-squared (r^2)
+r_squared <- r^2
+cat("Coefficient of determination (R²):", r_squared, "\n")
+
+```
+
+#Interpretation:
+Very Strong Positive Correlation: A correlation of 0.915 indicates a very strong linear relationship between Previous Scores and Current Performance Index.
+
+R² = 0.838: Approximately 84% of the variation in performance can be explained by previous scores alone.
+
+#Do students who practice more sample question papers tend to perform better?
+```{r}
+# Calculate the correlation coefficient (r)
+r <- cor(my_df$Sample.Question.Papers.Practiced, my_df$Performance.Index)
+cat("Correlation coefficient (r):", r, "\n")
+
+# Calculate R-squared (r^2)
+r_squared <- r^2
+cat("Coefficient of determination (R²):", r_squared, "\n")
+
+```
+#Interpretation:
+Very Weak Positive Correlation: The correlation between the number of sample question papers practiced and performance is very low.
+R² = 0.00187: Less than 2% of the variation in performance index is explained by the number of papers practiced.
+
+2.	Behavior and Lifestyle:
+
+#How does sleep quality (hours of sleep) affect student performance?
+
+#Do students who practice more sample question papers tend to perform better?
+```{r}
+# Calculate the correlation coefficient (r)
+r <- cor(my_df$Sleep.Hours, my_df$Performance.Index)
+cat("Correlation coefficient (r):", r, "\n")
+
+# Calculate R-squared (r^2)
+r_squared <- r^2
+cat("Coefficient of determination (R²):", r_squared, "\n")
+
+```
+#Interpretation:
+Very Weak Positive Correlation: The correlation is near zero, indicating almost no linear relationship between sleep hours and performance index.
+R² = 0.0023: Only 0.23% of the variation in performance is explained by sleep duration.
+
+
+#Do students who engage in extracurricular activities perform better or worse than those who don't?
+
+```{r}
+# Convert 'Extracurricular Activities' to binary (Yes = 1, No = 0)
+my_df$Extracurricular.Activities <- ifelse(my_df$Extracurricular.Activities == "Yes", 1, 0)
+
+# Calculate the average Performance Index for each group
+mean_performance <- tapply(my_df$Performance.Index, my_df$Extracurricular.Activities, mean)
+print("Mean Performance Index by Extracurricular Activities:")
+print(mean_performance)
+
+# Calculate correlation and R-squared
+r <- cor(my_df$Extracurricular.Activities, my_df$Performance.Index)
+r_squared <- r^2
+```
+#Extracurricular Activities on Performance:
+Average Performance:
+
+Students with extracurricular activities: 55.7
+
+Students without extracurricular activities: 54.76
+
+Correlation coefficient (r): 0.025
+
+R²: 0.0006 (0.06% of the variation)
+
+Interpretation:
+Students who engage in extracurricular activities perform slightly better on average.
+However, the correlation is extremely weak, suggesting that extracurricular involvement alone does not strongly predict performance.
+
+
+
+#Is there an optimal balance between sleep, study time, and extracurricular participation?
+
+
+
+# Load necessary package
+install.packages("dplyr")
+library(dplyr)
+
+```{r}
+# Convert 'Extracurricular Activities' to binary (Yes = 1, No = 0)
+my_df$Extracurricular_Binary <- ifelse(my_df$Extracurricular.Activities == "Yes", 1, 0)
+head(my_df)
+
+
+# Build the multiple linear regression model
+model <- lm(Performance.Index ~ Hours.Studied + Sleep.Hours + Extracurricular_Binary, data= my_df)
+
+# Display the summary of the model
+summary(model)
+
+
+
+```
+Multivariate Regression Summary:
+We used Hours Studied, Sleep Hours, and Extracurricular Activities to predict Performance Index.
+
+Key Findings:
+Hours Studied (coef = 2.77, p < 0.001):
+
+Each additional hour studied is associated with a 2.77 point increase in performance, on average.
+
+This is the strongest predictor in the model.
+
+Sleep Hours (coef = 0.55, p < 0.001):
+
+Each extra hour of sleep contributes an average 0.55 point increase in performance.
+
+Suggests sleep has a statistically significant but smaller effect than study time.
+
+
+Model Performance:
+R-squared = 0.143 → These three variables together explain 14.3% of the variance in performance.
+
+The model is statistically significant (p < 0.001), but much of the variance is still unexplained, likely due to other factors (e.g., prior scores, study methods, motivation).
+
+
+#	What combination of study hours, sleep, and extracurricular activities maximizes student performance?
+
+```{r}
+# Convert extracurricular participation to binary
+my_df$Extracurricular_Binary <- ifelse(my_df$Extracurricular.Activities == "Yes", 1, 0) 
+
+# Fit the linear regression model
+model <- lm(Performance.Index ~ Hours.Studied + Sleep.Hours + Extracurricular.Activities, data = my_df)
+
+# Extract coefficients
+coeffs <- coef(model)
+intercept <- coeffs["(Intercept)"]
+coef_study <- coeffs["Hours.Studied"]
+coef_sleep <- coeffs["Sleep.Hours"]
+coef_extra <- coeffs["Extracurricular.Activities"]
+
+# Initialize tracking variables
+best_score <- -Inf #set to least possible value
+best_combo <- c(NA, NA, NA)#creates a vector with the three placeholders
+
+# Try all combinations
+for (study in 0:10) 
+    { #loop through hours 0-10
+  for (sleep in 4:10) 
+      { #loop through sleep 4-10
+    for (extra in c(0, 1)) 
+         { #loop though extra curricula, 0 or 1
+      score <- intercept + coef_study * study + coef_sleep * sleep + coef_extra * extra
+      if (!is.na(score) && score  > best_score) 
+          {
+        best_score <- score
+        best_combo <- c(study, sleep, extra) #Update vector
+           }
+         }
+       }
+     }
+
+# Display the best combination and predicted performance
+cat("Best Combination:\n")
+cat("Hours Studied:", best_combo[1], "\n")
+cat("Sleep Hours:", best_combo[2], "\n")
+cat("Extracurricular Participation:", ifelse(best_combo[3] == 1, "Yes", "No"), "\n")
+cat("Predicted Performance Index:", round(best_score, 2), "\n")
+
+
+```
+According to the regression model, the highest predicted performance occurs when a student:
+
+Studies 10 hours per day,
+
+Sleeps 10 hours per night,
+
+Participates in extracurricular activities.
+
+While this combination is mathematically optimal, it may not be practically realistic due to time constraints. In reality, a balanced combination—such as 6–8 hours of study, 7–9 hours of sleep, and light extracurricular engagement—might be more sustainable.
+
+
+```{r}
+#Install packages
+install.packages("ggcorrplot")
+install.packages("reshape2")
+# Load necessary libraries
+library(ggplot2)
+library(reshape2)
+library(ggcorrplot)
+
+
+# Define threshold for poor previous scores (bottom 25%)
+low_score_threshold <- quantile(my_df$Previous.Scores, 0.25)
+
+# Filter students with poor previous scores
+low_score_students <- subset(my_df, Previous.Scores < low_score_threshold)
+
+# Select only numeric columns
+numeric_data <- low_score_students[, c("Hours.Studied", "Previous.Scores", 
+                                       "Sleep.Hours", "Sample.Question.Papers.Practiced", 
+                                       "Performance.Index")]
+
+# Compute correlation matrix
+cor_matrix <- cor(numeric_data, use = "complete.obs")
+
+# Plot correlation heatmap
+ggcorrplot(cor_matrix, lab = TRUE, colors = c("red", "white", "blue"),
+           title = "Correlation Matrix for Students with Poor Previous Scores")
+
+```
+For students with poor previous scores (bottom 25%):
+
+Hours Studied has a strong positive correlation with Performance Index (0.84).
+
+Previous Scores still have some influence (0.46), suggesting baseline ability matters.
+
+Sleep Hours show a weak positive correlation (0.11).
+
+Sample Question Papers Practiced have minimal impact (0.06).
+
+
+4. Segmentation and Grouping:
+#Can students be grouped based on similar study habits and performance outcomes?
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+
+# Read the dataset
+df <- read.csv("Student_Performance.csv")
+
+# Create performance group categories based on quantiles
+low_threshold <- quantile(df$Performance.Index, 0.25)
+high_threshold <- quantile(df$Performance.Index, 0.75)
+
+df <- df %>%
+  mutate(Performance.Group = cut(
+    Performance.Index,
+    breaks = c(-Inf, low_threshold, high_threshold, Inf),
+    labels = c("Low", "Medium", "High")
+  ))
+
+# Calculate group-wise averages
+group_summary <- df %>%
+  group_by(Performance.Group) %>%
+  summarise(
+    Hours.Studied = round(mean(Hours.Studied), 2),
+    Previous.Scores = round(mean(Previous.Scores), 2),
+    Sleep.Hours = round(mean(Sleep.Hours), 2),
+    Sample.Question.Papers.Practiced = round(mean(Sample.Question.Papers.Practiced), 2)
+  )
+
+# Display the summary
+print(group_summary)
+```
+High-performing students studied significantly more hours (6.27 on average) and had much higher previous scores (90.5), along with slightly more sleep and practice.
+
+Low-performing students studied the least (3.78 hours) and had much lower previous scores (49.1).
+
+There’s a clear trend: more study time, slightly better sleep, and consistent practice all correlate with better performance.
+
+5.Predictive Modeling:
+#Can student performance be predicted accurately based on these factors?
+
+```{r}
+install.packages("readr")
+install.packages("caret")
+install.packages("dplyr")
+install.packages("Metrics")
+install.packages("ggcorrplot")
+
+# Load necessary libraries
+library(readr)
+library(caret)
+library(dplyr)
+library(Metrics)
+library(ggcorrplot, repos = "https://cloud.r-project.org/")
+
+
+# Encode categorical variable
+my_df$`Extracurricular_Activities` <- ifelse(my_df$`Extracurricular.Activities` == "Yes", 1, 0)
+
+# Define features and target
+features <- my_df %>% select(-`Performance.Index`)
+target <- my_df$`Performance.Index`
+
+# Split the data (80% train, 20% test)
+set.seed(42)
+train_index <- createDataPartition(target, p = 0.8, list = FALSE)
+train_data <- features[train_index, ]
+test_data <- features[-train_index, ]
+train_target <- target[train_index]
+test_target <- target[-train_index]
+
+# Fit linear regression model
+model <- lm(train_target ~ ., data = train_data)
+
+# Predict on test data
+predictions <- predict(model, newdata = test_data)
+
+# Evaluate the model
+r2 <- R2(predictions, test_target)
+rmse_val <- rmse(test_target, predictions)
+
+# Output results
+cat("R²:", r2, "\n")
+cat("RMSE:", rmse_val, "\n")
+
+```
+The linear regression model performs very well on this dataset:
+
+R² Score: 0.989 — This means the model explains about 98.9% of the variance in the performance index.
+
+RMSE (Root Mean Squared Error): ~2.02 — On average, the model’s predictions are about 2 points off from the actual performance index.
+
+#What is the most influential factor in predicting student success?
+
+```{r}
+# Display coefficients sorted by influence
+coef_summary <- summary(model)$coefficients
+coefficients <- coef(model)[-1]  # Remove the intercept
+sorted_coefficients <- sort(coefficients, decreasing = TRUE)
+
+# Print sorted coefficients
+print(sorted_coefficients)
+
+# Optional: create a bar plot for visualization
+barplot(sorted_coefficients,
+        main = "Influence of Factors on Student Performance",
+        col = "skyblue",
+        las = 2,
+        cex.names = 0.8,
+        ylab = "Coefficient (Impact on Performance Index)")
+
+```
+#Based on the linear regression model, the most influential factors in predicting student success (measured by Performance Index) are:
+
+Hours Studied – 2.85
+
+Previous Scores – 1.02
+
+Extracurricular Activities – 0.61
+
+Sleep Hours – 0.48
+
+Sample Question Papers Practiced – 0.19
+
+#Interpretation:
+Hours Studied has the strongest positive influence on performance.
+
+Previous Scores are also a strong predictor, indicating consistent academic performance.
+
+Extracurricular Activities and Sleep Hours contribute positively but to a lesser extent.
+
+Practicing sample papers has the smallest effect among the factors listed.
+
+
